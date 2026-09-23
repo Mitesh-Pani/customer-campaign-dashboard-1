@@ -182,6 +182,18 @@ st.dataframe(
 )
 
 # --------------------------------------------------
+# AVAILABLE DATASET COLUMNS
+# --------------------------------------------------
+
+st.header("🔍 Available Dataset Columns")
+
+st.write(
+    "The following columns are available in the cleaned dataset:"
+)
+
+st.write(df.columns.tolist())
+
+# --------------------------------------------------
 # FOOTER
 # --------------------------------------------------
 
