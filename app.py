@@ -2,66 +2,192 @@ import streamlit as st
 import pandas as pd
 import os
 
+# --------------------------------------------------
+# PAGE CONFIGURATION
+# --------------------------------------------------
+
 st.set_page_config(
-    page_title="Customer Campaign Response Dashboard",
+    page_title="Customer Campaign Analytics",
     page_icon="📊",
     layout="wide"
 )
 
-st.title("📊 Customer Campaign Response Prediction Dashboard")
-st.write("Customer campaign analysis and machine learning dashboard")
+# --------------------------------------------------
+# TITLE
+# --------------------------------------------------
 
-# Load dataset
+st.title("📊 Customer Campaign Response Prediction")
+st.caption("Interactive Customer Analytics & Machine Learning Dashboard")
+
+# --------------------------------------------------
+# LOAD DATA
+# --------------------------------------------------
+
 data_path = "data/cleaned_customer_data.csv"
 
-if os.path.exists(data_path):
-    df = pd.read_csv(data_path)
+if not os.path.exists(data_path):
 
-    st.success("Dataset loaded successfully!")
+    st.error("❌ Dataset not found.")
+    st.stop()
 
-    # Overview
-    st.header("🏠 Executive Overview")
+df = pd.read_csv(data_path)
 
-    col1, col2, col3, col4 = st.columns(4)
+st.success("✅ Dataset loaded successfully!")
 
-    with col1:
-        st.metric("Total Customers", len(df))
+# --------------------------------------------------
+# SIDEBAR
+# --------------------------------------------------
 
-    with col2:
-        st.metric("Total Columns", len(df.columns))
+st.sidebar.title("🔎 Dashboard Controls")
 
-    with col3:
-        st.metric(
-            "Missing Values",
-            int(df.isnull().sum().sum())
-        )
+st.sidebar.info(
+    "Use the controls below to explore the customer dataset."
+)
 
-    with col4:
-        st.metric(
-            "Duplicate Rows",
-            int(df.duplicated().sum())
-        )
+# --------------------------------------------------
+# EXECUTIVE OVERVIEW
+# --------------------------------------------------
 
-    st.divider()
+st.header("🏠 Executive Overview")
 
-    # Dataset preview
-    st.header("👥 Customer Data")
+col1, col2, col3, col4 = st.columns(4)
 
-    st.dataframe(
-        df,
-        use_container_width=True
+with col1:
+    st.metric(
+        "👥 Total Customers",
+        f"{len(df):,}"
     )
 
-    # Basic statistics
-    st.header("📊 Dataset Statistics")
+with col2:
+    st.metric(
+        "📋 Total Features",
+        len(df.columns)
+    )
+
+with col3:
+    st.metric(
+        "⚠️ Missing Values",
+        int(df.isnull().sum().sum())
+    )
+
+with col4:
+    st.metric(
+        "🔁 Duplicate Rows",
+        int(df.duplicated().sum())
+    )
+
+st.divider()
+
+# --------------------------------------------------
+# DATASET INFORMATION
+# --------------------------------------------------
+
+st.header("📊 Dataset Overview")
+
+col1, col2 = st.columns(2)
+
+with col1:
+
+    st.subheader("Dataset Shape")
+
+    st.write(
+        f"**Rows:** {df.shape[0]:,}"
+    )
+
+    st.write(
+        f"**Columns:** {df.shape[1]}"
+    )
+
+with col2:
+
+    st.subheader("Data Quality")
+
+    missing = int(df.isnull().sum().sum())
+    duplicates = int(df.duplicated().sum())
+
+    if missing == 0:
+        st.success("✅ No missing values")
+
+    else:
+        st.warning(
+            f"⚠️ {missing:,} missing values found"
+        )
+
+    if duplicates == 0:
+        st.success("✅ No duplicate rows")
+
+    else:
+        st.warning(
+            f"⚠️ {duplicates:,} duplicate rows found"
+        )
+
+# --------------------------------------------------
+# CUSTOMER DATA
+# --------------------------------------------------
+
+st.header("👥 Customer Data")
+
+st.write(
+    "Use the table below to explore the customer dataset."
+)
+
+st.dataframe(
+    df,
+    use_container_width=True,
+    height=450
+)
+
+# --------------------------------------------------
+# STATISTICS
+# --------------------------------------------------
+
+st.header("📈 Dataset Statistics")
+
+numeric_columns = df.select_dtypes(
+    include="number"
+).columns
+
+if len(numeric_columns) > 0:
 
     st.dataframe(
-        df.describe(include="all").transpose(),
+        df[numeric_columns].describe().T,
         use_container_width=True
     )
 
 else:
-    st.error("Dataset not found!")
 
-    st.write("Expected file:")
-    st.code("data/cleaned_customer_data.csv")
+    st.info(
+        "No numeric columns available for statistical analysis."
+    )
+
+# --------------------------------------------------
+# COLUMN INFORMATION
+# --------------------------------------------------
+
+st.header("🧾 Column Information")
+
+column_info = pd.DataFrame({
+    "Column": df.columns,
+    "Data Type": df.dtypes.astype(str),
+    "Missing Values": df.isnull().sum().values,
+    "Unique Values": [
+        df[column].nunique()
+        for column in df.columns
+    ]
+})
+
+st.dataframe(
+    column_info,
+    use_container_width=True
+)
+
+# --------------------------------------------------
+# FOOTER
+# --------------------------------------------------
+
+st.divider()
+
+st.caption(
+    "Customer Campaign Response Prediction Dashboard | "
+    "Built with Python, Pandas and Streamlit"
+)
